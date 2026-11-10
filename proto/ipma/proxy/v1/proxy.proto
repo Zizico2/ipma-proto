@@ -3,6 +3,16 @@ syntax = "proto3";
 package ipma.proxy.v1;
 
 import "google/protobuf/timestamp.proto";
+import "ipma/proxy/v1/direction_value.proto";
+import "ipma/proxy/v1/fire_risk_class_value.proto";
+import "ipma/proxy/v1/precipitation_intensity.proto";
+import "ipma/proxy/v1/precipitation_intensity_value.proto";
+import "ipma/proxy/v1/warning_level_value.proto";
+import "ipma/proxy/v1/warning_type_value.proto";
+import "ipma/proxy/v1/weather_type.proto";
+import "ipma/proxy/v1/weather_type_value.proto";
+import "ipma/proxy/v1/wind_speed_class.proto";
+import "ipma/proxy/v1/wind_speed_class_value.proto";
 
 // Read-only access to IPMA's documented public datasets. Missing measurements
 // (null, empty strings or IPMA's -99 sentinel) are absent optional fields.
@@ -84,6 +94,11 @@ message WeatherForecast {
   optional int32 weather_type_code = 8;
   optional int32 wind_speed_class = 9;
   optional int32 precipitation_intensity_class = 10;
+  // Typed categories preserve the source code/text alongside their enum value.
+  WeatherTypeValue weather_type = 11;
+  WindSpeedClassValue wind_speed_classification = 12;
+  PrecipitationIntensityValue precipitation_intensity = 13;
+  DirectionValue wind_direction = 14;
 }
 
 message GetWarningsRequest {}
@@ -91,7 +106,7 @@ message GetWarningsResponse {
   SourceMetadata metadata = 1;
   repeated Warning warnings = 2;
 }
-// Strings preserve upstream categories, including newly introduced levels.
+// Published raw strings remain available; typed values retain unfamiliar sources.
 message Warning {
   string area_id = 1;
   string type_name = 2;
@@ -99,6 +114,8 @@ message Warning {
   string text = 4;
   google.protobuf.Timestamp starts_at = 5;
   google.protobuf.Timestamp ends_at = 6;
+  WarningTypeValue warning_type = 7;
+  WarningLevelValue warning_level = 8;
 }
 
 message GetObservationsRequest {}
@@ -118,6 +135,7 @@ message Observation {
   optional double relative_humidity_percent = 8;
   optional double sea_level_pressure_hectopascals = 9;
   optional double solar_radiation_kilojoules_per_square_meter = 10;
+  DirectionValue wind_direction = 11;
 }
 
 message GetSeaForecastRequest {
@@ -141,6 +159,7 @@ message SeaForecast {
   optional double minimum_sea_surface_temperature_celsius = 9;
   optional double maximum_sea_surface_temperature_celsius = 10;
   string prevailing_wave_direction = 11;
+  DirectionValue wave_direction = 12;
 }
 
 message GetFireRiskRequest {
@@ -159,6 +178,7 @@ message FireRisk {
   Coordinates coordinates = 2;
   // 1=reduced, 2=moderate, 3=high, 4=very high, 5=maximum.
   optional int32 risk_class = 3;
+  FireRiskClassValue classification = 4;
 }
 
 message GetUvForecastRequest {}
@@ -245,6 +265,13 @@ message CodeEntry {
   sint32 code = 1;
   string description_portuguese = 2;
   string description_english = 3;
+  // The source code and bilingual descriptions accompany one typed category.
+  // -99 remains a catalogue entry with UNSPECIFIED value; unfamiliar codes use OTHER.
+  oneof classification {
+    WeatherType weather_type = 4;
+    WindSpeedClass wind_speed_class = 5;
+    PrecipitationIntensity precipitation_intensity = 6;
+  }
 }
 
 enum GeoDataset {

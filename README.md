@@ -41,6 +41,12 @@ need a root Cargo.toml. Import `ipma_proto::v1::*`,
 `ipma_proto::FILE_DESCRIPTOR_SET` and `ipma_proto::MAX_MESSAGE_BYTES`. Pin a
 commit and commit Cargo.lock so both services consume the same API revision.
 
+Category wrappers use `value` for their enum and retain the source code/text.
+Parent fields carry domain names such as `warning_level` and `weather_type`.
+Reference-table entries combine a `classification` oneof with their original
+code and bilingual descriptions. See [category semantics](docs/categories.md)
+for missing values, unknown categories and compatibility rules.
+
 From the root:
 
 - `just proto-check` runs schema lint/build checks.
