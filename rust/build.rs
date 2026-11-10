@@ -2,7 +2,7 @@ use prost::Message;
 use std::path::PathBuf;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let schema_dir = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR")?).join("../../proto");
+    let schema_dir = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR")?).join("../proto");
     println!("cargo:rerun-if-changed={}", schema_dir.display());
     let descriptors = protox::compile(
         [schema_dir.join("ipma/proxy/v1/proxy.proto")],

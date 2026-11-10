@@ -3,29 +3,25 @@ set positional-arguments
 default:
     @just --list
 
-build:
-    cargo build --locked --workspace
+# Run a Rust-specific recipe with rust/ as its working directory.
+rust *args:
+    just --justfile rust/justfile "$@"
 
-# Build Rust bindings and a language-neutral descriptor image.
-generate: build
-    buf build -o target/ipma-descriptor.bin
+# Generate language-neutral descriptors and the available language bindings.
+generate: descriptors
+    just --justfile rust/justfile generate
+
+descriptors:
+    mkdir -p build
+    buf build -o build/ipma-descriptor.bin
 
 fmt:
-    cargo fmt --all
     buf format -w
+    just --justfile rust/justfile fmt
 
 fmt-check:
-    cargo fmt --all --check
     buf format --diff --exit-code
-
-check:
-    cargo check --locked --workspace --all-targets
-
-lint:
-    cargo clippy --locked --workspace --all-targets -- -D warnings
-
-test:
-    cargo test --locked --workspace
+    just --justfile rust/justfile fmt-check
 
 proto-check:
     buf lint
@@ -37,8 +33,10 @@ proto-breaking against='.git#ref=HEAD':
 ping address='127.0.0.1:50051':
     buf curl --schema proto --protocol grpc --http2-prior-knowledge --data '{}' "http://$1/ipma.proxy.v1.ProxyService/Ping"
 
-# All supported selections; extra forecast requests are explicitly opt-in.
+# Compatibility shortcut; the implementation belongs to the Rust recipes.
 smoke address='http://127.0.0.1:50051' extra_calls='0':
-    cargo run --locked -p ipma-proto --example smoke -- "$1" "$2"
+    just --justfile rust/justfile smoke "$1" "$2"
 
-verify: fmt-check check lint test proto-check
+verify: proto-check
+    buf format --diff --exit-code
+    just --justfile rust/justfile verify

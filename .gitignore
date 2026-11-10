@@ -1,2 +1,5 @@
-/target
+/build/
+/rust/target/
+# Ignore artifacts from the previous root Cargo layout.
+/target/
 .env
