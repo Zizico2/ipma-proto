@@ -3,10 +3,22 @@ syntax = "proto3";
 package ipma.proxy.v1;
 
 import "google/protobuf/timestamp.proto";
+import "ipma/proxy/v1/coastal_location_value.proto";
 import "ipma/proxy/v1/direction_value.proto";
+import "ipma/proxy/v1/district_value.proto";
 import "ipma/proxy/v1/fire_risk_class_value.proto";
+import "ipma/proxy/v1/forecast_location_value.proto";
+import "ipma/proxy/v1/geo_feature_categories.proto";
+import "ipma/proxy/v1/geographic_region_value.proto";
+import "ipma/proxy/v1/municipality_value.proto";
 import "ipma/proxy/v1/precipitation_intensity.proto";
 import "ipma/proxy/v1/precipitation_intensity_value.proto";
+import "ipma/proxy/v1/seismic_degree_value.proto";
+import "ipma/proxy/v1/seismic_magnitude_type_value.proto";
+import "ipma/proxy/v1/seismic_source_value.proto";
+import "ipma/proxy/v1/station_value.proto";
+import "ipma/proxy/v1/uv_period_value.proto";
+import "ipma/proxy/v1/warning_area_value.proto";
 import "ipma/proxy/v1/warning_level_value.proto";
 import "ipma/proxy/v1/warning_type_value.proto";
 import "ipma/proxy/v1/weather_type.proto";
@@ -99,6 +111,7 @@ message WeatherForecast {
   WindSpeedClassValue wind_speed_classification = 12;
   PrecipitationIntensityValue precipitation_intensity = 13;
   DirectionValue wind_direction = 14;
+  ForecastLocationValue location = 15;
 }
 
 message GetWarningsRequest {}
@@ -116,6 +129,7 @@ message Warning {
   google.protobuf.Timestamp ends_at = 6;
   WarningTypeValue warning_type = 7;
   WarningLevelValue warning_level = 8;
+  WarningAreaValue area = 9;
 }
 
 message GetObservationsRequest {}
@@ -136,6 +150,7 @@ message Observation {
   optional double sea_level_pressure_hectopascals = 9;
   optional double solar_radiation_kilojoules_per_square_meter = 10;
   DirectionValue wind_direction = 11;
+  StationValue station = 12;
 }
 
 message GetSeaForecastRequest {
@@ -160,6 +175,7 @@ message SeaForecast {
   optional double maximum_sea_surface_temperature_celsius = 10;
   string prevailing_wave_direction = 11;
   DirectionValue wave_direction = 12;
+  ForecastLocationValue location = 13;
 }
 
 message GetFireRiskRequest {
@@ -179,6 +195,7 @@ message FireRisk {
   // 1=reduced, 2=moderate, 3=high, 4=very high, 5=maximum.
   optional int32 risk_class = 3;
   FireRiskClassValue classification = 4;
+  MunicipalityValue municipality = 5;
 }
 
 message GetUvForecastRequest {}
@@ -193,6 +210,8 @@ message UvForecast {
   optional double index = 3;
   string peak_hour_interval = 4;
   optional int32 period_code = 5;
+  UvPeriodValue period = 6;
+  ForecastLocationValue location = 7;
 }
 
 enum SeismicRegion {
@@ -223,6 +242,9 @@ message SeismicEvent {
   optional bool sensed = 13;
   optional string google_map_reference = 14;
   optional string tensor_reference = 15;
+  SeismicMagnitudeTypeValue magnitude_classification = 16;
+  SeismicDegreeValue intensity = 17;
+  SeismicSourceValue reporting_source = 18;
 }
 
 enum LocationKind {
@@ -246,6 +268,12 @@ message Location {
   optional uint32 district_id = 6;
   optional uint32 municipality_code = 7;
   optional uint32 local_code = 8;
+  ForecastLocationValue location = 9;
+  WarningAreaValue warning_area = 10;
+  GeographicRegionValue region = 11;
+  DistrictValue district = 12;
+  MunicipalityValue municipality = 13;
+  CoastalLocationValue coastal_location = 14;
 }
 
 enum CodeTableKind {
@@ -289,6 +317,8 @@ message GetGeoDatasetResponse {
   // Precision is six decimal places; properties/extensions retain original values
   // including -99. The stations array is wrapped in a FeatureCollection.
   bytes geobuf = 2;
+  // Optional typed companions, associated by feature index; Geobuf is unchanged.
+  repeated GeoFeatureCategories feature_categories = 3;
 }
 
 enum ClimateDataset {
@@ -323,6 +353,7 @@ message ClimateRecord {
   string municipality_id = 2;
   string municipality_name = 3;
   repeated ClimateStatistics statistics = 4;
+  MunicipalityValue municipality = 5;
 }
 message ClimateStatistics {
   ClimateMetric metric = 1;
