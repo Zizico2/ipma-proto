@@ -55,9 +55,43 @@ Older servers may omit them, so clients adopting them should retain a fallback t
 existing raw fields until all servers have upgraded. Future changes must preserve
 enum numbers and field tags; reserve removed names/numbers.
 
-District, municipality/DICO, warning-area, station and location values remain
-identifiers, not enums. DICO strings retain leading zeroes. UV risk is not inferred
-from a numeric index. Geobuf preserves source properties without typed remapping.
+Reference identities also have typed wrappers: `GeographicRegion`, `District`,
+`Municipality`, `WarningArea`, `ForecastLocation`, `CoastalLocation` and `Station`.
+The large catalogues are explicitly partial snapshots, with `OTHER` for identities
+outside the snapshot. Their enum numbers are independent of the source IDs; do not
+cast an enum to construct a source ID. Existing request selectors still use the
+original source IDs.
+
+`MunicipalityValue.source_code` is the full DICO and retains leading zeroes.
+Location records compose it from idDistrito and idConcelho only when both exist;
+partial components remain available without inventing a global identity. District
+context and the original local code accompany the value when present in that
+response. Climate/fire responses retain their supplied DICO without an extra lookup.
+
+`UvPeriod` recognises source codes 0 and 10 without assuming their internal meaning;
+the original hour interval accompanies the code. `SeismicMagnitudeType`,
+`SeismicDegree` and `SeismicSource` preserve exact published tokens. Free-text
+observation regions and localities are not classified. UV risk is not inferred
+from a numeric index.
+
+Geobuf bytes and source properties remain unchanged. `feature_categories` supplies
+optional typed companions joined by the zero-based feature index, never a feature
+ID. Null properties omit an entry without shifting later indices. Stations carry
+their typed ID and source label when present. Bivalves carry typed zone, zone type,
+status, region, scientific taxon, common label, sanitary class and harvest-list
+membership. Documentation/live aliases (`samp` versus `code`, `CLOSED` versus
+`CLOSE`) retain their exact spelling; the two status tokens are distinct enum cases.
+Undocumented qualifiers such as `B*`, `NA` and `NC` are recognised tokens without
+an inferred safety interpretation. Future list names and taxa remain available
+through `OTHER` and their original values. Missing scientific names can still carry
+a common label with `UNSPECIFIED` taxon.
+
+All mappings happen in the adapter using compile-time matches in
+`ipma-service/src/reference.rs`; there are no additional reference-data fetches.
+When expanding a catalogue, append stable enum cases without renumbering existing
+ones and update the adapter matches in the same rollout. Unknown cases stay valid
+data until then. The gateway preserves and caches these fields, including future
+numeric protobuf enum values; it does not reinterpret them.
 
 The source vocabularies are documented by [IPMA](https://api.ipma.pt/), including
 [weather types](https://api.ipma.pt/open-data/weather-type-classe.json),
